@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -43,20 +43,40 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Sign the user in immediately to establish a JWT session in cookies
-    const supabase = await createClient();
+    // Build the response first, then create a Supabase client that writes
+    // session cookies directly onto that response object.
+    const response = NextResponse.json(
+      { message: 'Account created successfully' },
+      { status: 201 }
+    );
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (signInError) {
       return NextResponse.json({ error: signInError.message }, { status: 400 });
     }
 
-    return NextResponse.json({ message: 'Account created successfully' }, { status: 201 });
+    return response;
   } catch (error) {
-    console.error('Signup error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    console.error('Signup error:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
