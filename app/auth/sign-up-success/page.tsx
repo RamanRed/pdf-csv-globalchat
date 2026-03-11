@@ -35,6 +35,10 @@ export default function SignUpSuccessPage() {
               .
             </p>
             <p className="mt-4">
+              If you&apos;re on Vercel and still don&apos;t receive it, verify your
+              Supabase Auth email provider and allowed redirect URLs.
+            </p>
+            <p className="mt-4">
               Already verified?{' '}
               <Link
                 href="/auth/login"

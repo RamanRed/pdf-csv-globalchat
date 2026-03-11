@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const { email, password, username } = await request.json();
+    const emailRedirectTo = new URL('/auth/callback?next=/protected', request.nextUrl.origin).toString();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
       email,
       password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/auth/callback`,
+        emailRedirectTo,
         data: {
           username: username || email.split('@')[0],
         },
