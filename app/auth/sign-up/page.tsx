@@ -55,7 +55,7 @@ export default function Page() {
         throw new Error(data.error || `Request failed (${response.status})`)
       }
 
-      router.push('/auth/sign-up-success')
+      router.push('/protected')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
