@@ -45,10 +45,14 @@ export default function Page() {
         }),
       })
 
-      const data = await response.json()
+      let data: { error?: string; message?: string } = {}
+      const contentType = response.headers.get('content-type') ?? ''
+      if (contentType.includes('application/json')) {
+        data = await response.json()
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Unable to create your account')
+        throw new Error(data.error || `Request failed (${response.status})`)
       }
 
       router.push('/auth/sign-up-success')
